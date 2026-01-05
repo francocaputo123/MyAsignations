@@ -4,26 +4,45 @@ import axios from 'axios'
 function App() {
   const [data, setData] = useState(null)
   const [error, setError] = useState("")
+  const [warning, setWarning] = useState("")
   const [legajo, setLegajo] = useState({ legajo: "" })
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setLegajo(prev => ({ ...prev, [name]: value }))
+    setWarning("")
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if(!legajo.legajo) {
+      return setWarning("No ingresaste nada. No seas gil.")
+    }
+
     try {
       const res = await axios.get(
-        `http://localhost:3001/api/asignaciones/${legajo.legajo}`
+        `${import.meta.env.VITE_API_URL}/api/asignaciones/${legajo.legajo}`
       )
       setData(res.data)
       setError("")
     } catch (err) {
-      setError("Error al consultar el servidor")
+      setError("Error del servidor: " + err)
       setData(null)
     }
+  }
+  console.log("aca: " + import.meta.env.VITE_API_URL);
+  
+  
+  if (error) {
+    return(
+    <div className="min-h-screen w-full bg-slate-100 flex flex-col items-center px-4">
+        {error}
+        <p>
+          Intenta recargando.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -59,6 +78,17 @@ function App() {
         >
           Consultar
         </button>
+
+        {
+          warning ? (
+            <div className="text-center font-medium">
+              {warning}
+            </div>
+          ) :
+          (
+            ""
+          )
+        }
 
         {error && (
           <p className="text-sm text-red-500 text-center">{error}</p>
@@ -101,6 +131,9 @@ function App() {
                   <p className="text-sm">
                     <span className="font-medium">Salida:</span> {asig.horaSalida}
                   </p>
+                  <p className="text-sm">
+                    <span className="font-medium">Local:</span> {asig.tienda.replace("BK", "")}
+                  </p>
                 </div>
               ))}
             </div>
@@ -111,6 +144,10 @@ function App() {
           )}
         </div>
       )}
+      <div className="border p-4 m-4 text-center text-gray-500">
+        Espacio reservado
+      </div>
+
     </div>
   )
 }
